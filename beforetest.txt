@@ -1,0 +1,47 @@
+whenver you test inside the postman do send thee raw data like this 
+
+
+and you can copy paste also 
+
+{
+  "deals": [
+    {
+      "Deal_Name": "Diamond Earrings Set",
+      "Stage": "Closed Won",
+      "Amount": 45000,
+      "Pipeline": "ARG",
+      "Closing_Date": "2025-10-15",
+      "Account_Id": "6946766000000591175",
+      "Contact_Id": "6946766000000643086",
+      "Email": "fatima@elitediamonds.com",
+      "Phone": "0503456789",
+      "Description": "Premium diamond earrings with matching set",
+      "Customer_interest": "Diamond",
+      "Initial_Interest": "Earrings",
+      "Category": "Earrings",
+      "Sub_Category": "Diamond Earrings",
+      "Brand": "Luxury",
+      "Style": "Modern",
+      "Size": "Standard",
+      "Design": "DE-004",
+      "Prefix_Code": "DIAM",
+      "Main_Stock_Code": "DE-2025-004",
+      "Stock_Code": "DE004",
+      "Price_Code": "PC-DIAM-2",
+      "Purity": "18K",
+      "Metal_Colour": "Platinum",
+      "Gross_Weight": "12.5",
+      "Net_Weight": "11.8",
+      "Stone_Weight": "1.5",
+      "Stone_Rate": "20000",
+      "PCS": "1",
+      "Making": "4000",
+      "Making_Price_1": "3500",
+      "Making_Price_2": "4000",
+      "Making_Price_3": "4500",
+      "Wastage": "2%",
+      "Supplier_Name": "Premium Stones LLC",
+      "Supplier_Purchase_Number": "SUP-2025-004"
+    }
+  ]
+}
