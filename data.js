@@ -135,3 +135,5 @@ let transaction = {
   skip_feature_execution: [{ name: "cadences" }],
   trigger: ["approval", "workflow", "blueprint", "pathfinder", "orchestration"]
 };
+
+module.exports = { data, transaction };
