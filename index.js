@@ -12,6 +12,7 @@ const zoho_domain = "https://accounts.zoho.com";
 const crm_domain = "https://www.zohoapis.com";
 const moduleName = "Deals";
 
+
 // ------------------- ACCESS TOKEN -------------------
 async function getAccessToken() {
   try {
@@ -25,12 +26,12 @@ async function getAccessToken() {
     });
     console.log("✅ Access Token Generated");
     return response.data.access_token;
-  } catch (error) {
+  } catch (error ) {
     console.error("❌ Error generating access token:", error.response?.data || error.message);
   }
 }
 
-// ------------------- CREATE DEAL -------------------
+// ------------------- CREATE A Single DEAL -------------------
 async function createDeal(access_token, deal) {
   try {
     const dealData = {
@@ -40,7 +41,7 @@ async function createDeal(access_token, deal) {
           Stage: deal.Stage,
           Amount: deal.Amount,
           Pipeline: deal.Pipeline || "ARG",
-           Account_Name: {id: "6946766000000591172" }|| { id: deal.Account_Id },
+          Account_Name: {id: "6946766000000591172" }|| { id: deal.Account_Id },
           Contact_Name: {id:"6946766000000643083"}||{ id: deal.Contact_Id }, 
           Email: deal.Email,
           Phone: deal.Phone,
@@ -142,6 +143,17 @@ app.post("/create-deals", async (req, res) => {
     });
   }
 });
+
+// transaction work 
+
+
+
+
+
+
+
+
+
 
 // ------------------- START SERVER -------------------
 app.listen(port, () => {
