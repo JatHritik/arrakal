@@ -1,5 +1,5 @@
 const express = require("express");
-const { data } = require("./data.js"); // Import data from data.js
+const { data, transaction } = require("./data.js");
 const axios = require("axios");
 const app = express();
 const port = 3000;
@@ -10,13 +10,13 @@ const client_secret = "c026be16a48706543ddc4d2a89ba9363a6750045eb";
 const refresh_token = "1000.97d12fd8612cbfa69604216ef6d779ae.6b7881398e3c60adc1ba65e4691b5977";
 const zoho_domain = "https://accounts.zoho.com";
 const crm_domain = "https://www.zohoapis.com";
-const moduleName = "Deals";
-
+const transactionsModule = "Transactions";
+const dealsModule = "Deals";
 
 // ------------------- ACCESS TOKEN -------------------
 async function getAccessToken() {
   try {
-    const response = await axios.post(`${zoho_domain}/oauth/v2/token`, null, {
+    const res = await axios.post(`${zoho_domain}/oauth/v2/token`, null, {
       params: {
         refresh_token,
         client_id,
@@ -25,137 +25,171 @@ async function getAccessToken() {
       },
     });
     console.log("✅ Access Token Generated");
-    return response.data.access_token;
-  } catch (error ) {
-    console.error("❌ Error generating access token:", error.response?.data || error.message);
+    return res.data.access_token;
+  } catch (err) {
+    console.error("❌ Error generating token:", err.response?.data || err.message);
   }
 }
 
-// ------------------- CREATE A Single DEAL -------------------
-async function createDeal(access_token, deal) {
-  try {
-    const dealData = {
-      data: [
-        {
-          Deal_Name: deal.Deal_Name,
-          Stage: deal.Stage,
-          Amount: deal.Amount,
-          Pipeline: deal.Pipeline || "ARG",
-          Account_Name: {id: "6946766000000591172" }|| { id: deal.Account_Id },
-          Contact_Name: {id:"6946766000000643083"}||{ id: deal.Contact_Id }, 
-          Email: deal.Email,
-          Phone: deal.Phone,
-          Description: deal.Description,
-          Customer_interest: deal.Customer_interest,
-          Initial_Interest: deal.Initial_Interest,
-          Category: deal.Category,
-          Sub_Category: deal.Sub_Category,
-          Brand: deal.Brand,
-          Style: deal.Style,
-          Size: deal.Size,
-          Design: deal.Design,
-          Prefix_Code: deal.Prefix_Code,
-          Main_Stock_Code: deal.Main_Stock_Code,
-          Stock_Code: deal.Stock_Code,
-          Price_Code: deal.Price_Code,
-          Purity: deal.Purity,
-          Metal_Colour: deal.Metal_Colour,
-          Gross_Weight: deal.Gross_Weight,
-          Net_Weight: deal.Net_Weight,
-          Stone_Weight: deal.Stone_Weight,
-          Stone_Rate: deal.Stone_Rate,
-          PCS: deal.PCS,
-          Making: deal.Making,
-          Making_Price_1: deal.Making_Price_1,
-          Making_Price_2: deal.Making_Price_2,
-          Making_Price_3: deal.Making_Price_3,
-          Wastage: deal.Wastage,
-          Supplier_Name: deal.Supplier_Name,
-          Supplier_Purchase_Number: deal.Supplier_Purchase_Number,
-        },
-      ],
-    };
+// ------------------- UTIL: TODAY -------------------
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
 
-    console.log("📦 Creating Deal:", dealData);
-    const response = await axios.post(`${crm_domain}/crm/v8/${moduleName}`, dealData, {
+// ------------------- CREATE DEAL -------------------
+async function createDeal(access_token, dealDataFromTemplate) {
+  const dealData = {
+    data: [
+      {
+        Deal_Name: dealDataFromTemplate.Deal_Name || "Unnamed Deal",
+        Stage: dealDataFromTemplate.Stage || "Qualification",
+        Closing_Date: dealDataFromTemplate.Closing_Date || today(),
+        Amount: dealDataFromTemplate.Amount || 0,
+        Customer_interest: dealDataFromTemplate.Customer_interest,
+        Prefix_Code: dealDataFromTemplate.Prefix_Code,
+        Description: dealDataFromTemplate.Description || "Auto-created from Transaction",
+        Account_Name: "6946766000000591172",
+        Contact_Name: "6946766000000877164",
+        Email: dealDataFromTemplate.Email,
+        Pipeline:"ARG",
+        Phone: dealDataFromTemplate.Phone,
+        Category: dealDataFromTemplate.Category,
+        Sub_Category: dealDataFromTemplate.Sub_Category,
+        Brand: dealDataFromTemplate.Brand,
+        Style: dealDataFromTemplate.Style,
+        Size: dealDataFromTemplate.Size,
+        Design: dealDataFromTemplate.Design,
+        Purity: dealDataFromTemplate.Purity,
+        Metal_Colour: dealDataFromTemplate.Metal_Colour,
+        Gross_Weight: dealDataFromTemplate.Gross_Weight,
+        Net_Weight: dealDataFromTemplate.Net_Weight,
+        Stone_Weight: dealDataFromTemplate.Stone_Weight,
+        Stone_Rate: dealDataFromTemplate.Stone_Rate,
+        Making: dealDataFromTemplate.Making,
+        Wastage: dealDataFromTemplate.Wastage,
+        Supplier_Name: dealDataFromTemplate.Supplier_Name,
+        Supplier_Purchase_Number: dealDataFromTemplate.Supplier_Purchase_Number,
+      },
+    ],
+  };
+
+  try {
+    console.log("📦 Creating Deal:", JSON.stringify(dealData, null, 2));
+    const res = await axios.post(`${crm_domain}/crm/v6/${dealsModule}`, dealData, {
       headers: {
         Authorization: `Zoho-oauthtoken ${access_token}`,
         "Content-Type": "application/json",
       },
     });
 
-    console.log(`✅ Deal Created: ${deal.Deal_Name}`, response.data.data[0]);
-    return response.data.data[0];
-  } catch (error) {
-    const errorJson = {
-      success: false,
-      dealName: deal.Deal_Name,
-      status: error.response?.status || "N/A",
-      message: error.response?.data?.message || error.message,
-      details: error.response?.data || null,
-    };
-
-    console.error("❌ Error creating deal:", JSON.stringify(errorJson, null, 2));
-    return errorJson;
+    const newDealId = res?.data?.data?.[0]?.details?.id;
+    console.log(`🆕 Deal Created (${newDealId})`);
+    return newDealId;
+  } catch (err) {
+    console.error("❌ Deal Create Error:", JSON.stringify(err.response.data) || err.message);
+    return null;
   }
 }
 
-// ------------------- CREATE ALL DEALS -------------------
-async function createAllDeals() {
-  const access_token = await getAccessToken();
-  if (!access_token) {
-    console.error("❌ Cannot proceed without access token.");
-    return { success: false, message: "No access token" };
+// ------------------- UPDATE TRANSACTION WITH DEAL -------------------
+async function updateTransactionWithDeal(access_token, transactionId, dealId) {
+  try {
+    const body = { data: [{ Deals: { id: dealId } }] };
+    await axios.put(`${crm_domain}/crm/v6/${transactionsModule}/${transactionId}`, body, {
+      headers: {
+        Authorization: `Zoho-oauthtoken ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log(`🔁 Linked Transaction (${transactionId}) → Deal (${dealId})`);
+  } catch (err) {
+    console.error("❌ Error updating transaction:", err.response?.data || err.message);
   }
+}
+
+// ------------------- CREATE TRANSACTION -------------------
+async function createTransaction(access_token, trx) {
+  try {
+    const safeName = trx.Name?.trim() || "Untitled Transaction";
+    const transactionPayload = {
+      data: [
+        {
+          Name: safeName,
+          Layout: trx.Layout_id ? { id: trx.Layout_id } : undefined,
+          Customer_interest: trx.Customer_interest,
+          Prefix_Code: trx.Prefix_Code,
+          Stone_Weight: trx.Stone_Weight,
+          Making: trx.Making,
+          Making_Price_2: trx.Making_Price_2,
+          Description: trx.Description || "Transaction created from API",
+        },
+      ],
+    };
+
+    console.log("📦 Creating Transaction:", JSON.stringify(transactionPayload, null, 2));
+    const res = await axios.post(`${crm_domain}/crm/v6/${transactionsModule}`, transactionPayload, {
+      headers: {
+        Authorization: `Zoho-oauthtoken ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const transactionId = res.data.data[0].details.id;
+    console.log(`✅ Transaction Created (${transactionId})`);
+
+    // 🆕 Step 2: Immediately create a Deal using the data.deals[0]
+    const dealTemplate = data.deals[0];
+    const newDealId = await createDeal(access_token, dealTemplate);
+
+    // 🔁 Step 3: Update the Transaction with the newly created Deal ID
+    if (newDealId) {
+      await updateTransactionWithDeal(access_token, transactionId, newDealId);
+      return { transactionId, dealId: newDealId, status: "deal_created_and_linked" };
+    } else {
+      console.warn("⚠️ Deal creation failed, skipping link update.");
+      return { transactionId, dealId: null, status: "deal_creation_failed" };
+    }
+  } catch (err) {
+    console.error("❌ Transaction Error:", err.response?.data || err.message);
+    return null;
+  }
+}
+
+// ------------------- CREATE ALL TRANSACTIONS -------------------
+async function createAllTransactions() {
+  const token = await getAccessToken();
+  if (!token) return { success: false, message: "No access token" };
 
   const results = [];
-  for (const deal of data.deals) {
-    const result = await createDeal(access_token, deal);
+  for (const trx of transaction.data) {
+    const result = await createTransaction(token, trx);
     results.push(result);
   }
 
-  console.log("🎉 All deals processed successfully!");
+  console.log("🎉 All transactions processed!");
   return results;
 }
 
 // ------------------- ROUTES -------------------
-
-// Default route
-app.get("/", (req, res) => {
-  res.send("✅ Zoho CRM Deal Creator API is Running...");
-});
-
-// Route to trigger deal creation
-app.post("/create-deals", async (req, res) => {
+app.post("/create-transactions", async (req, res) => {
   try {
-    const results = await createAllDeals();
+    const results = await createAllTransactions();
     res.status(200).json({
       success: true,
-      message: "Deals processed successfully",
+      message: "Transactions and Deals created successfully",
       results,
     });
-  } catch (error) {
-    console.error("❌ Error in /create-deals route:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Error creating deals",
-      error: error.message,
-    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// transaction work 
-
-
-
-
-
-
-
-
-
+app.get("/", (req, res) => {
+  res.send("✅ Zoho CRM Transaction + Deal Creation API Running...");
+});
 
 // ------------------- START SERVER -------------------
-app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
-});
+app.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));

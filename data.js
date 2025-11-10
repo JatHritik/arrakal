@@ -48,19 +48,17 @@
 };
 
 let transaction = {
-  transactions: [
+  data: [
     {
       Layout_id: "6946766000000992011",
-      Transaction_Name: "Test Gold",
-      Transaction_Id: "6946766000000996082",
-      Owner_Name: "ARG GOLD AND DIAMONDS TRADING L.L.C",
-      Owner_Id: "6946766000000572001",
-      Owner_Email: "accounts@arggoldanddiamonds.com",
-      Created_By: "ARG GOLD AND DIAMONDS TRADING L.L.C",
+      // Name: "Test Gold", // Zoho expects field API name 'Name' for record name
+      id: "6946766000000996082",
+      Owner: { id: "6946766000000572001", email: "accounts@arggoldanddiamonds.com", name: "ARG GOLD AND DIAMONDS TRADING L.L.C" },
+      Created_By: { name: "ARG GOLD AND DIAMONDS TRADING L.L.C" },
       Created_Time: "2025-11-04T16:13:58+04:00",
-      Modified_By: "ARG GOLD AND DIAMONDS TRADING L.L.C",
+      Modified_By: { name: "ARG GOLD AND DIAMONDS TRADING L.L.C" },
       Modified_Time: "2025-11-07T09:34:29+04:00",
-      Approval_State: "approved",
+      $approval_state: "approved",
       Customer_interest: "Gold",
       Prefix_Code: "teste12",
       Stone_Weight: "test",
@@ -124,16 +122,16 @@ let transaction = {
       Certificate_Number: null,
       Country: null,
       Description: null,
-      Deal_Name: "Sandra Speering",
-      Deal_Id: "6946766000000785168",
-      Currency_Symbol: "$",
-      Locked: false,
-      Editable: true
+      Deals: { id: "6946766000000785168", name: "Sandra Speering" },
+      $currency_symbol: "$",
+      Locked__s: false,
+      $editable: true
     }
   ],
   apply_feature_execution: [{ name: "layout_rules" }],
   skip_feature_execution: [{ name: "cadences" }],
   trigger: ["approval", "workflow", "blueprint", "pathfinder", "orchestration"]
 };
+
 
 module.exports = { data, transaction };
