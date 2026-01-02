@@ -24,8 +24,7 @@ async function getAccessToken() {
 function sanitizeTransaction(trx) {
   const baseTransactionRecord = {
     Layout: trx.Layout_id ? { id: trx.Layout_id } : undefined,
-    Name: trx.Transaction_Name,
-    Transaction_Name: trx.Transaction_Name,
+    Name: trx.Name || trx.Transaction_Name || "Untitled",
     Customer_interest: trx.Customer_interest,
     Prefix_Code: trx.Prefix_Code,
     Stone_Weight: trx.Stone_Weight,
@@ -43,12 +42,53 @@ function sanitizeTransaction(trx) {
     Metal_Carat: trx.Metal_Carat,
     Metal_Rate_pure: trx.Metal_Rate_pure,
     Metal_Value: trx.Metal_Value,
+    Metal_WT: trx.Metal_WT,
     Gross_Weight: trx.Gross_Weight,
     Net_Weight: trx.Net_Weight,
     Stone_Rate: trx.Stone_Rate,
-    Deal_Name: trx.Deal_Id ? { id: trx.Deal_Id } : undefined,
-    Currency_Symbol: trx.Currency_Symbol,
-    Description: trx.Description,
+    Stone_Value: trx.Stone_Value,
+    Stone_Selling_Rate_Per_Carat: trx.Stone_Selling_Rate_Per_Carat,
+    Stone_Selling_Value: trx.Stone_Selling_Value,
+    Diamond_Selling_Rate: trx.Diamond_Selling_Rate,
+    Diamond_Selling_Value: trx.Diamond_Selling_Value,
+    Diamond_Amount_Per_CT: trx.Diamond_Amount_Per_CT,
+    DIA_Carat_Weight: trx.DIA_Carat_Weight,
+    Diamond_Size: trx.Diamond_Size,
+    Diamond_Clarity: trx.Diamond_Clarity,
+    No_of_Diamonds: trx.No_of_Diamonds,
+    Wastage: trx.Wastage,
+    Labour_Charges: trx.Labour_Charges,
+    Polishing_Charges: trx.Polishing_Charges,
+    Setting_Charges: trx.Setting_Charges,
+    Misc_Charges: trx.Misc_Charges,
+    Rhodium_Charges: trx.Rhodium_Charges,
+    Cost: trx.Cost,
+    Cost_Code: trx.Cost_Code,
+    Price_Code: trx.Price_Code,
+    Tag_Price_1: trx.Tag_Price_1,
+    Tag_Price_2: trx.Tag_Price_2,
+    Tag_Price_3: trx.Tag_Price_3,
+    Tag_line_1: trx.Tag_line_1,
+    Tag_line_2: trx.Tag_line_2,
+    Tag_line_3: trx.Tag_line_3,
+    Tag_line_4: trx.Tag_line_4,
+    Tag_line_5: trx.Tag_line_5,
+    Supplier_Name: trx.Supplier_Name,
+    Supplier_Purchase_Number: trx.Supplier_Purchase_Number,
+    Supplier_Ref: trx.Supplier_Ref,
+    Stock_Code: trx.Stock_Code,
+    Main_Stock_Code: trx.Main_Stock_Code,
+    Metal_Division: trx.Metal_Division,
+    Item_Division: trx.Item_Division,
+    Diamond_Division: trx.Diamond_Division,
+    Type: trx.Type,
+    Quantity: trx.Quantity,
+    PCS: trx.PCS,
+    Design_Number: trx.Design_Number,
+    Certificate_Number: trx.Certificate_Number,
+    Country: trx.Country,
+    Deals: trx.Deals ? { id: trx.Deals.id } : undefined,
+    Description: trx.Description || "Transaction created from API",
   };
 
   return Object.fromEntries(
@@ -89,7 +129,7 @@ async function run() {
     const access_token = await getAccessToken();
     const results = [];
 
-    for (const trx of transaction.transactions) {
+    for (const trx of transaction.data) {
       const result = await createTransaction(access_token, trx);
       results.push(result);
     }
